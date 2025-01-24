@@ -5,27 +5,52 @@ from typing import List, Optional
 from datetime import date
 
 async def get_all_shipments():
-    query = """
-    SELECT 
-        s.ShipmentID as shipment_id,
-        s.OrderID as order_id,
-        s.ShipmentDate as shipment_date,
-        o.OrderDate as order_date,
-        EXTRACT(CASE WHEN sh.ShipmentDate IS NOT NULL 
-                 THEN DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)
-                 ELSE 0 END) as delivery_days,
-        json_agg(json_build_object(
+    # query = """
+    # SELECT 
+    #     s.ShipmentID as shipment_id,
+    #     s.OrderID as order_id,
+    #     s.ShipmentDate as shipment_date,
+    #     o.OrderDate as order_date,
+    #     EXTRACT(CASE WHEN sh.ShipmentDate IS NOT NULL 
+    #              THEN DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)
+    #              ELSE 0 END) as delivery_days,
+    #     json_agg(json_build_object(
+    #         'product_id', p.ProductID,
+    #         'product_name', p.Name,
+    #         'quantity', sd.Quantity
+    #     )) as details
+    # FROM Shipments s
+    # JOIN Orders o ON s.OrderID = o.OrderID
+    # LEFT JOIN ShipmentDetails sd ON s.ShipmentID = sd.ShipmentID
+    # LEFT JOIN Products p ON sd.ProductID = p.ProductID
+    # GROUP BY s.ShipmentID, s.OrderID, s.ShipmentDate, o.OrderDate
+    # ORDER BY s.ShipmentDate DESC;
+    # """
+    query="""
+    SELECT
+        s.ShipmentID AS shipment_id,
+        s.OrderID AS order_id,
+        s.ShipmentDate AS shipment_date,
+        o.OrderDate AS order_date,
+        CASE 
+            WHEN s.ShipmentDate IS NOT NULL 
+            THEN DATE_PART('day', s.ShipmentDate::timestamp - o.OrderDate::timestamp)
+            ELSE 0
+            END AS delivery_days,
+        json_agg(
+        json_build_object(
             'product_id', p.ProductID,
             'product_name', p.Name,
             'quantity', sd.Quantity
-        )) as details
-    FROM Shipments s
-    JOIN Orders o ON s.OrderID = o.OrderID
-    LEFT JOIN ShipmentDetails sd ON s.ShipmentID = sd.ShipmentID
-    LEFT JOIN Products p ON sd.ProductID = p.ProductID
-    GROUP BY s.ShipmentID, s.OrderID, s.ShipmentDate, o.OrderDate
-    ORDER BY s.ShipmentDate DESC;
-    """
+        )
+    ) AS details
+FROM Shipments s
+JOIN Orders o ON s.OrderID = o.OrderID
+LEFT JOIN ShipmentDetails sd ON s.ShipmentID = sd.ShipmentID
+LEFT JOIN Products p ON sd.ProductID = p.ProductID
+GROUP BY s.ShipmentID, s.OrderID, s.ShipmentDate, o.OrderDate
+ORDER BY s.ShipmentDate DESC;
+"""
     return execute_query(query)
 
 async def get_late_shipments():
