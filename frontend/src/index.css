@@ -179,7 +179,11 @@ code {
   color: #374151;
   border: 1px solid #d1d5db;
 }
-
+.btn-secondary:disabled {
+  background-color: white;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
 .btn-secondary:hover {
   background-color: #f9fafb;
 }

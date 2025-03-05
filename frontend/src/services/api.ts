@@ -1,7 +1,7 @@
 // API service
 const API_BASE_URL = "http://localhost:8000/api/v1"
 
-export const fetchData = async <T,>(endpoint: string): Promise<T> => {
+export const fetchData = async <T,>(endpoint: string, p0?: { method: string; body: string; headers: { 'Content-Type': string } }): Promise<T> => {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`)
     if (!response.ok) {
@@ -53,4 +53,3 @@ export const deleteData = async (endpoint: string): Promise<void> => {
     throw new Error(`API request failed: ${response.statusText}`)
   }
 }
-

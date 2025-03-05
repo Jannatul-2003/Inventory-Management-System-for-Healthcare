@@ -17,7 +17,7 @@ import type {
   CustomerResponse,
   SupplierResponse,
   ProductResponse,
-} from "../../types";
+} from "../../types/index.ts";
 import OrderFilters from "./order-filters.tsx";
 import CreateOrderModal from "./create-order-modal.tsx";
 import ViewOrderModal from "./view-order-modal.tsx";
