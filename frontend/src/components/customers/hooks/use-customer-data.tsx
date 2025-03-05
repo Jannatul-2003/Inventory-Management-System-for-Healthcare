@@ -108,14 +108,11 @@ export const useCustomerData = (selectedCustomerId: number | null, viewMode: str
     }
   }
 
-  // Function to delete a customer
   const handleDeleteCustomer = async (customerId: number) => {
-    if (!window.confirm("Are you sure you want to delete this customer?")) return
-
     try {
       setLoading(true)
       await deleteData(`/customers/${customerId}`)
-
+  
       // Update the customer list after deletion
       if (showVipOnly) {
         const updatedVipList = await fetchData<CustomerValueAnalysis[]>("/customers/vip")
@@ -124,15 +121,16 @@ export const useCustomerData = (selectedCustomerId: number | null, viewMode: str
         const updatedList = await fetchData<CustomerResponse[]>("/customers/")
         setCustomers(updatedList)
       }
-
+  
       setError(null)
     } catch (err) {
-      setError("Failed to delete customer")
+      setError(`Failed to delete customer. ${err.message}`)
       console.error(err)
     } finally {
       setLoading(false)
     }
   }
+  
 
   // Function to create a new customer
   const createCustomer = async (customerData: CustomerCreate) => {

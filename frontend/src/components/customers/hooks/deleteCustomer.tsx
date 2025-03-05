@@ -26,7 +26,7 @@ const DeleteCustomerModal: React.FC<DeleteCustomerModalProps> = ({
   if (!showDeleteModal) return null
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+    <div className="p-4 bg-gray-50 border-b border-gray-200">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4">
         <div className="p-5">
           <div className="flex items-center justify-center mb-4">
@@ -70,7 +70,7 @@ const DeleteCustomerModal: React.FC<DeleteCustomerModalProps> = ({
             <button 
               type="button" 
               className="btn btn-danger" 
-              onClick={handleDeleteCustomer} 
+              onClick={value => handleDeleteCustomer()} 
               disabled={deleteLoading}
             >
               {deleteLoading ? "Deleting..." : "Delete Customer"}

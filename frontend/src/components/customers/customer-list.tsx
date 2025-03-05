@@ -1,7 +1,6 @@
 import React from "react"
 import type { CustomerResponse, CustomerValueAnalysis } from "../../types/index.ts"
 import TooltipButton from "../ui/button.tsx"
-import DeleteCustomerModal from "./hooks/deleteCustomer.tsx"
 
 interface CustomerListProps {
   customers: CustomerResponse[]
@@ -89,8 +88,8 @@ const CustomerList: React.FC<CustomerListProps> = ({
         <>
           <div className="card-body p-0">
             <div className="overflow-x-auto">
-              <table>
-                <thead>
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
                     <th>Customer ID</th>
                     <th>Name</th>
