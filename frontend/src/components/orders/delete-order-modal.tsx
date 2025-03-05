@@ -26,7 +26,7 @@ const DeleteOrderModal: React.FC<DeleteOrderModalProps> = ({
   if (!showDeleteModal) return null
 
   return (
-    <div className="p-4 bg-gray-50 border-b border-gray-200">
+    <div className="p-4 bg-gray-50 border-b border-gray-200 px-20">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4">
         <div className="p-5">
           <div className="flex items-center justify-center mb-4">

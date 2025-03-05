@@ -186,7 +186,6 @@ const CustomerList: React.FC<CustomerListProps> = ({
             </div>
           </div>
           {/* Pagination Controls */}
-          {(showVipOnly ? vipCustomers.length : customers.length) > customersPerPage && (
             <div className="card-footer">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">
@@ -219,8 +218,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
                 </div>
               </div>
             </div>
-          )}
-        </>
+                  </>
       )}
     </div>
   )

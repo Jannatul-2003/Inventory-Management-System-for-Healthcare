@@ -15,7 +15,7 @@ import {
 import SidebarItem from "./components/sidebar-item.tsx";
 import Orders from "./components/orders/orders.tsx";
 import Customers from "./components/customers/customers.tsx";
-import Suppliers from "./components/suppliers.tsx";
+import Suppliers from "./components/supplier/suppliers1.tsx";
 import Shipments from "./components/shipments.tsx";
 
 const App: React.FC = () => {

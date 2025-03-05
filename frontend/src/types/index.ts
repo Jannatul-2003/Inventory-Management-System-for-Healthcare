@@ -39,30 +39,35 @@ export interface OrderDetail {
   total_price: number;
 }
 
-export interface InventoryResponse {
-  inventory_id: number;
-  product_id: number;
-  product_name: string;
-  price: number;
-  quantity: number;
-  status: string;
-}
-
-export interface ProductResponse {
-  product_id: number;
-  name: string;
-  description: string | null;
-  price: number;
-  current_stock: number;
-  stock_status: string;
-}
-
-export interface CustomerResponse {  customer_id: number;
-
+export interface CustomerResponse {
+  customer_id: number;
   name: string;
   contact_info: string | null;
   total_orders: number;
   total_spent: number;
+}
+
+export interface CustomerOrderHistory {
+  order_id: number;
+  order_date: string;
+  product_name: string;
+  quantity: number;
+  unit_price: string;
+  total_price: string;
+}
+export interface CustomerValueAnalysis {
+  customer_id: number;
+  name: string;
+  total_orders: number;
+  total_spent: number;
+}
+export interface CustomerCreate {
+  name: string;
+  contact_info: string | null;
+}
+export interface CustomerUpdate {
+  name: string | null;
+  contact_info: string | null;
 }
 
 export interface SupplierResponse {
@@ -71,6 +76,31 @@ export interface SupplierResponse {
   contact_info: string | null;
   total_orders: number;
   avg_delivery_days: number;
+}
+
+export interface SupplierAnalytics {
+supplier_id:number
+name:string
+total_orders:number
+total_units:number
+total_value:string
+avg_delivery_days:number
+avg_order_value:string
+performance_rating:string}
+
+export interface SupplierCreate {
+  name: string;
+  contact_info: string | null;
+}
+export interface SupplierUpdate {
+  name: string | null;
+  contact_info: string | null;
+}
+export interface SupplierPerformance {
+  supplier_id: number;
+  name: string;
+  total_orders: number;
+  avg_delivery_days:number
 }
 
 export interface ShipmentResponse {
@@ -133,26 +163,20 @@ export interface ProductAnalytics {
   current_stock: number;
   monthly_velocity: number;
 }
-
-export interface CustomerOrderHistory {
-  order_id: number;
-  order_date: string;
+export interface InventoryResponse {
+  inventory_id: number;
+  product_id: number;
   product_name: string;
+  price: number;
   quantity: number;
-  unit_price: string;
-  total_price: string;
+  status: string;
 }
-export interface CustomerValueAnalysis {
-  customer_id: number;
+
+export interface ProductResponse {
+  product_id: number;
   name: string;
-  total_orders: number;
-  total_spent: number;
-}
-export interface CustomerCreate{
-  name:string
-  contact_info:string | null
-}
-export interface CustomerUpdate{
-  name:string | null
-  contact_info:string | null
+  description: string | null;
+  price: number;
+  current_stock: number;
+  stock_status: string;
 }

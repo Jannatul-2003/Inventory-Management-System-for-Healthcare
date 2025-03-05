@@ -428,6 +428,10 @@ form > * + * {
   width: 16rem;
 }
 
+.w-128 {
+  width: 32rem;
+}
+
 .w-full {
   width: 100%;
 }
@@ -444,6 +448,10 @@ form > * + * {
   margin-right: 0.75rem;
 }
 
+.mb4 {
+  margin-bottom: 1rem;
+}
+
 .mb-1 {
   margin-bottom: 0.25rem;
 }
@@ -454,6 +462,11 @@ form > * + * {
 
 .p-4 {
   padding: 1rem;
+}
+
+.px-20 {
+  padding-left: 5rem;
+  padding-right: 5rem;
 }
 
 .px-4 {

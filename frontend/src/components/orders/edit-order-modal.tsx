@@ -75,7 +75,7 @@ const EditOrderModal: React.FC<EditOrderModalProps> = ({
                 type="date"
                 value={editOrderDate}
                 onChange={(e) => setEditOrderDate(e.target.value)}
-                className="select-input w-full"
+                className="select-input w-64"
                 required
               />
             </div>
