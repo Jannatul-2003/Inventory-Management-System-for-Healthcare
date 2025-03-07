@@ -18,6 +18,61 @@ This Inventory Management System provides businesses with a powerful tool to tra
 - **Payment Processing**: Record and manage payment transactions
 - **Analytics**: Comprehensive business analytics and reporting
 
+## Authentication and Role-Based Access Control
+
+### User Authentication
+
+The system implements a simple authentication mechanism using username and contact information. Users are stored in the database with the following attributes:
+
+- `id`: Primary key
+- `name`: User's name
+- `contact_info`: Contact information (email, phone, etc.)
+- `role`: User's role (admin, customer, supplier)
+
+### User Roles and Permissions
+
+The system supports three user roles with different access levels:
+
+#### Admin Role
+- Full access to all system features
+- Can manage inventory, products, customers, orders, suppliers, shipments, analytics, and payments
+- Can view and modify all data in the system
+
+#### Customer Role
+- Limited access to system features
+- Can view products
+- Can view and manage their own orders
+- Can access the dashboard with limited information
+
+#### Supplier Role
+- Limited access to system features
+- Can view products
+- Can view and manage orders related to them
+- Can view and manage shipments related to them
+- Can access the dashboard with limited information
+
+### Page Access by Role
+
+| Page/Feature | Admin | Customer | Supplier |
+|--------------|-------|----------|----------|
+| Dashboard    | ✅    | ✅       | ✅       |
+| Inventory    | ✅    | ❌       | ❌       |
+| Products     | ✅    | ✅       | ✅       |
+| Customers    | ✅    | ❌       | ❌       |
+| Orders       | ✅    | ✅       | ✅       |
+| Suppliers    | ✅    | ❌       | ❌       |
+| Shipments    | ✅    | ❌       | ✅       |
+| Analytics    | ✅    | ❌       | ❌       |
+| Payments     | ✅    | ❌       | ❌       |
+
+### Backend API Endpoints for Authentication
+
+The backend provides the following API endpoints for authentication:
+
+- `POST /api/v1/auth/login` - Authenticate a user
+  - Request body: `{ "username": "string", "contact_info": "string" }`
+  - Response: `{ "user": { "id": number, "name": "string", "contact_info": "string", "role": "string" }, "token": "string" }`
+
 
 ## Tech Stack
 
@@ -142,6 +197,7 @@ uvicorn app.main:app --reload
 ```plaintext
 frontend/
 ├── app/                    # Next.js App Router
+|   └── {dashboard}/        
 │   ├── analytics/          # Analytics pages
 │   ├── customers/          # Customer management pages
 │   ├── inventory/          # Inventory management pages
@@ -151,6 +207,8 @@ frontend/
 │   ├── shipments/          # Shipment tracking pages
 │   ├── suppliers/          # Supplier management pages
 │   └── layout.tsx          # Root layout
+|   └── ui/
+|        └── page.tsx                
 ├── components/             # Reusable React components
 │   ├── dashboard-header.tsx
 │   ├── dashboard-nav.tsx
@@ -163,6 +221,7 @@ frontend/
 │   ├── services/           # Service modules for API calls
 │   ├── types.ts            # TypeScript type definitions
 │   └── utils.ts            # Utility functions
+|   └── auth-context.ts        
 └── public/                 # Static assets
 ```
 
@@ -174,22 +233,25 @@ backend/
 │   ├── api/                # API endpoints
 │   │   ├── v1/             # API version 1
 │   │   │   ├── endpoints/  # API route handlers
+│   │   │   │      ├── analytics.py
+│   │   │   │      ├── auth.py
+│   │   │   │      ├── customer.py
+│   │   │   │      ├── dashboard.py
+│   │   │   │      ├── inventory.py
+│   │   │   │      ├── order.py
+│   │   │   │      ├── payment.py
+│   │   │   │      ├── product.py
+│   │   │   │      ├── shipment.py
+│   │   │   │      |── supplier.py
+│   │   │   │      ├── user.py
 │   │   │   └── router.py   # API router
 │   ├── config/             # Application configuration
 │   │   ├── __init__.py
 │   │   └── database.py     # Database configuration
-│   ├── models/             # Database models
-│   │   ├── __init__.py
-│   │   ├── customer.py
-│   │   ├── inventory.py
-│   │   ├── order.py
-│   │   ├── payment.py
-│   │   ├── product.py
-│   │   ├── shipment.py
-│   │   └── supplier.py
 │   ├── repositories/       # Data access layer
 │   │   ├── __init__.py
 │   │   ├── analytics_repo.py
+│   │   ├── user_repo.py
 │   │   ├── customer_repo.py
 │   │   ├── dashboard_repo.py
 │   │   ├── inventory_repo.py
@@ -201,6 +263,7 @@ backend/
 │   ├── schemas/            # Pydantic schemas
 │   │   ├── __init__.py
 │   │   ├── analytics.py
+│   │   ├── auth.py
 │   │   ├── customer.py
 │   │   ├── dashboard.py
 │   │   ├── inventory.py
@@ -209,17 +272,10 @@ backend/
 │   │   ├── product.py
 │   │   ├── shipment.py
 │   │   └── supplier.py
+│   │   ├── user.py
 │   ├── services/           # Business logic
 │   │   ├── __init__.py
-│   │   ├── analytics_service.py
-│   │   ├── customer_service.py
-│   │   ├── dashboard_service.py
-│   │   ├── inventory_service.py
-│   │   ├── order_service.py
-│   │   ├── payment_service.py
-│   │   ├── product_service.py
-│   │   ├── shipment_service.py
-│   │   └── supplier_service.py
+│   │   ├── auth_service.py
 │   ├── utils/              # Utility functions
 │   │   ├── __init__.py
 │   │   └── database_utils.py
@@ -242,6 +298,11 @@ backend/
 ## API Endpoints
 
 The backend provides the following API endpoints:
+
+### Products
+
+- `POST /api/v1/auth/login` - Authenticate a user with username and contact information
+
 
 ### Products
 
