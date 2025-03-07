@@ -44,7 +44,7 @@ async def get_monthly_metrics():
 async def get_top_products():
     query = """
     SELECT 
-        p.ProductID,
+        p.ProductID as product_id,
         p.Name,
         SUM(od.Quantity) as total_sold,
         SUM(od.Quantity * p.Price) as total_revenue
@@ -61,7 +61,7 @@ async def get_top_products():
 async def get_top_customers():
     query = """
     SELECT 
-        c.CustomerID,
+        c.CustomerID as customer_id,
         c.Name,
         COUNT(DISTINCT co.OrderID) as total_orders,
         SUM(od.Quantity * p.Price) as total_spent

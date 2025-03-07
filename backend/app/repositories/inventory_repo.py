@@ -43,7 +43,11 @@ async def get_low_stock_items():
 
 async def get_stock_alerts():
     query = """
-    SELECT p.*
+    SELECT 
+        p.ProductID AS product_id, 
+        p.Name AS name, 
+        p.Description AS description, 
+        p.Price AS price
     FROM Products p
     JOIN Inventory i USING(ProductID)
     WHERE i.Quantity < ALL (
