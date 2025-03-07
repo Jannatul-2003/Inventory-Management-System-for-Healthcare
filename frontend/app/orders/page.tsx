@@ -1,13 +1,26 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardNav } from "@/components/dashboard-nav"
-import { DashboardShell } from "@/components/dashboard-shell"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect } from "react";
+import { DashboardHeader } from "@/components/dashboard-header";
+import { DashboardNav } from "@/components/dashboard-nav";
+import { DashboardShell } from "@/components/dashboard-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,99 +28,101 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, FileText, CheckCircle, Clock, XCircle } from "lucide-react"
-import Link from "next/link"
-import { getOrders, getOrderStatus } from "@/lib/services/order-service"
-import type { OrderResponse, OrderStatusSummary } from "@/lib/types"
-import { useToast } from "@/components/ui/use-toast"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import {
+  Plus,
+  MoreHorizontal,
+  FileText,
+  CheckCircle,
+  Clock,
+  XCircle,
+} from "lucide-react";
+import Link from "next/link";
+import { getOrders, getOrderStatus } from "@/lib/services/order-service";
+import type { OrderResponse, OrderStatusSummary } from "@/lib/types";
+import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<OrderResponse[]>([])
-  const [statusSummary, setStatusSummary] = useState<OrderStatusSummary[]>([])
-  const [loading, setLoading] = useState(true)
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
-  const [customerId, setCustomerId] = useState<string>("")
-  const [supplierId, setSupplierId] = useState<string>("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const { toast } = useToast()
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [statusSummary, setStatusSummary] = useState<OrderStatusSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [customerId, setCustomerId] = useState<string>("");
+  const [supplierId, setSupplierId] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
 
         // Fetch orders
         const ordersData = await getOrders(
           startDate,
           endDate,
           customerId ? Number(customerId) : undefined,
-          supplierId ? Number(supplierId) : undefined,
-        )
-        setOrders(ordersData)
+          supplierId ? Number(supplierId) : undefined
+        );
+        setOrders(ordersData);
 
         // Fetch order status summary
-        const statusData = await getOrderStatus()
-        setStatusSummary(statusData)
+        const statusData = await getOrderStatus();
+        setStatusSummary(statusData);
       } catch (error) {
-        console.error("Failed to fetch orders:", error)
+        console.error("Failed to fetch orders:", error);
         toast({
           title: "Error",
           description: "Failed to load order data. Please try again.",
           variant: "destructive",
-        })
+        });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [startDate, endDate, customerId, supplierId, toast])
+    fetchData();
+  }, [startDate, endDate, customerId, supplierId, toast]);
 
   const filteredOrders = orders.filter((order) => {
-    if (statusFilter === "all") return true
-    return order.status.toLowerCase() === statusFilter.toLowerCase()
-  })
+    if (statusFilter === "all") return true;
+    return order.status.toLowerCase() === statusFilter.toLowerCase();
+  });
 
   // Helper function to safely format currency values
   const formatCurrency = (amount: any): string => {
-    const numAmount = typeof amount === "number" ? amount : Number(amount)
-    return isNaN(numAmount) ? "0.00" : numAmount.toFixed(2)
-  }
+    const numAmount = typeof amount === "number" ? amount : Number(amount);
+    return isNaN(numAmount) ? "0.00" : numAmount.toFixed(2);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
-      case "completed":
+      case "shipped":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-100 flex w-fit items-center gap-1">
-            <CheckCircle className="h-3 w-3" /> Completed
+            <CheckCircle className="h-3 w-3" /> Shipped
           </Badge>
-        )
-      case "processing":
+        );
+      case "paid":
         return (
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 flex w-fit items-center gap-1">
-            <Clock className="h-3 w-3" /> Processing
+            <Clock className="h-3 w-3" /> Paid
           </Badge>
-        )
+        );
       case "pending":
         return (
           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 flex w-fit items-center gap-1">
             <Clock className="h-3 w-3" /> Pending
           </Badge>
-        )
-      case "cancelled":
-        return (
-          <Badge className="bg-red-100 text-red-800 hover:bg-red-100 flex w-fit items-center gap-1">
-            <XCircle className="h-3 w-3" /> Cancelled
-          </Badge>
-        )
+        );
+
       default:
-        return <Badge>{status}</Badge>
+        return <Badge>{status}</Badge>;
     }
-  }
+  };
   const uniqueOrders = filteredOrders.filter(
     (value, index, self) =>
       index === self.findIndex((t) => t.order_id === value.order_id)
@@ -123,7 +138,9 @@ export default function OrdersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
-                <p className="text-muted-foreground">Manage your orders and track their status</p>
+                <p className="text-muted-foreground">
+                  Manage your orders and track their status
+                </p>
               </div>
               <Link href="/orders/new">
                 <Button>
@@ -138,7 +155,9 @@ export default function OrdersPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Orders
+                </CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -147,34 +166,51 @@ export default function OrdersPage() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Completed Orders</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Completed Orders
+                </CardTitle>
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {orders.filter((order) => order.status.toLowerCase() === "completed").length}
+                  {
+                    orders.filter(
+                      (order) => order.status.toLowerCase() === "shipped"
+                    ).length
+                  }
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Pending Orders
+                </CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {orders.filter((order) => order.status.toLowerCase() === "pending").length}
+                  {
+                    orders.filter(
+                      (order) => order.status.toLowerCase() === "paid"
+                    ).length
+                  }
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Revenue
+                </CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${formatCurrency(orders.reduce((sum, order) => sum + order.total_amount, 0))}
+                  ৳
+                  {formatCurrency(
+                    orders.reduce((sum, order) => sum + order.total_amount, 0)
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -223,10 +259,9 @@ export default function OrdersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -255,21 +290,27 @@ export default function OrdersPage() {
                   {filteredOrders.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-10">
-                        No orders found. Try different filters or create a new order.
+                        No orders found. Try different filters or create a new
+                        order.
                       </TableCell>
                     </TableRow>
                   ) : (
                     uniqueOrders.map((order) => (
                       <TableRow key={order.order_id}>
                         <TableCell>#{order.order_id}</TableCell>
-                        <TableCell>{new Date(order.order_date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          {new Date(order.order_date).toLocaleDateString()}
+                        </TableCell>
                         <TableCell>{order.customer_name}</TableCell>
                         <TableCell>{order.supplier_name}</TableCell>
                         <TableCell>
                           {order.total_items} ({order.total_quantity} units)
                         </TableCell>
-                        <TableCell>${formatCurrency(order.total_amount)}</TableCell>
+                        <TableCell>
+                          ৳{formatCurrency(order.total_amount)}
+                        </TableCell>
                         <TableCell>{getStatusBadge(order.status)}</TableCell>
+
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -281,14 +322,22 @@ export default function OrdersPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuItem asChild>
-                                <Link href={`/orders/${order.order_id}`}>View details</Link>
+                                <Link href={`/orders/${order.order_id}`}>
+                                  View details
+                                </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem asChild>
-                                <Link href={`/orders/${order.order_id}/edit`}>Edit order</Link>
+                                <Link href={`/orders/${order.order_id}/edit`}>
+                                  Edit order
+                                </Link>
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem asChild>
-                                <Link href={`/payments/new?order_id=${order.order_id}`}>Record payment</Link>
+                                <Link
+                                  href={`/payments/new?order_id=${order.order_id}`}
+                                >
+                                  Record payment
+                                </Link>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -303,6 +352,5 @@ export default function OrdersPage() {
         </main>
       </div>
     </div>
-  )
+  );
 }
-

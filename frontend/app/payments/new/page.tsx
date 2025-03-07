@@ -26,7 +26,6 @@ export default function NewPaymentPage() {
     order_id: 0,
     payment_date: new Date().toISOString().split("T")[0],
     amount: 0,
-    payment_method: "Credit Card",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,24 +130,6 @@ export default function NewPaymentPage() {
                     onChange={handleChange}
                     required
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="payment_method">Payment Method</Label>
-                  <Select
-                    value={formData.payment_method}
-                    onValueChange={(value) => handleSelectChange("payment_method", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select payment method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Credit Card">Credit Card</SelectItem>
-                      <SelectItem value="Debit Card">Debit Card</SelectItem>
-                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                      <SelectItem value="PayPal">PayPal</SelectItem>
-                      <SelectItem value="Cash">Cash</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between">

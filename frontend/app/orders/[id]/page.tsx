@@ -93,28 +93,22 @@ export default function OrderDetailPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
-      case "completed":
+      case "shipped":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-100 flex w-fit items-center gap-1">
-            <CheckCircle className="h-3 w-3" /> Completed
+            <CheckCircle className="h-3 w-3" /> Shipped
           </Badge>
         )
-      case "processing":
+      case "paid":
         return (
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 flex w-fit items-center gap-1">
-            <Clock className="h-3 w-3" /> Processing
+            <Clock className="h-3 w-3" /> Paid
           </Badge>
         )
       case "pending":
         return (
           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 flex w-fit items-center gap-1">
             <Clock className="h-3 w-3" /> Pending
-          </Badge>
-        )
-      case "cancelled":
-        return (
-          <Badge className="bg-red-100 text-red-800 hover:bg-red-100 flex w-fit items-center gap-1">
-            <XCircle className="h-3 w-3" /> Cancelled
           </Badge>
         )
       default:

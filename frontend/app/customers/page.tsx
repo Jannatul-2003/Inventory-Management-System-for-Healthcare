@@ -115,7 +115,7 @@ export default function CustomersPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${formatCurrency(customers.reduce((sum, customer) => sum + customer.total_spent, 0))}
+                ৳ {formatCurrency(customers.reduce((sum, customer) => sum + customer.total_spent, 0))}
                 </div>
               </CardContent>
             </Card>
@@ -179,7 +179,7 @@ export default function CustomersPage() {
                         <TableCell className="font-medium">{customer.name}</TableCell>
                         <TableCell>{customer.contact_info || "N/A"}</TableCell>
                         <TableCell>{customer.total_orders}</TableCell>
-                        <TableCell>${formatCurrency(customer.total_spent)}</TableCell>
+                        <TableCell>৳ {formatCurrency(customer.total_spent)}</TableCell>
                         <TableCell>
                           {customer.total_spent > 1000 ? (
                             <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">VIP</Badge>

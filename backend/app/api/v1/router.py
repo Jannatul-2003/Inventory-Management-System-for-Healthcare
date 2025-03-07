@@ -8,12 +8,14 @@ from app.api.v1.endpoints import (
     customers,
     inventory,
     analytics,
-    payments
+    payments,
+    auth,
 )
 
 router = APIRouter()
 
 # Include all endpoint routers
+router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 router.include_router(products.router, prefix="/products", tags=["Products"])
 router.include_router(orders.router, prefix="/orders", tags=["Orders"])
