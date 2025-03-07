@@ -118,15 +118,21 @@ pip install -r requirements.txt
 ```plaintext
 DATABASE_URL=postgresql://username:password@localhost/inventory_db
 ```
+5. Set up the backend project structure using the provided PowerShell script:
 
-5. Start the FastAPI server:
+
+```shellscript
+ powershell -ExecutionPolicy Bypass -File create_project_structure.ps1
+```
+
+6. Start the FastAPI server:
 
 
 ```shellscript
 uvicorn app.main:app --reload
 ```
 
-6. Access the API at `http://localhost:8000`
+7. Access the API at `http://localhost:8000`
 
 
 ## Project Structure
