@@ -88,7 +88,7 @@ export default function SuppliersPage() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={performance}>
-                    <XAxis dataKey="name" />
+                    <XAxis dataKey="name" hide={true}/>
                     <YAxis />
                     <Tooltip />
                     <Bar dataKey="avg_delivery_days" fill="#8884d8" name="Avg. Delivery Days" />

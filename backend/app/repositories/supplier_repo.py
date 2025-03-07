@@ -41,10 +41,28 @@ async def get_supplier_by_id(supplier_id: int):
     return result[0] if result else None
 
 async def get_supplier_performance():
-    query = """
+    # query = """
+    # WITH SupplierStats AS (
+    #     SELECT 
+    #         s.SupplierID as supplier_id,
+    #         s.Name,
+    #         COUNT(DISTINCT o.OrderID) AS total_orders,
+    #         COALESCE(AVG(CASE WHEN sh.ShipmentDate IS NOT NULL 
+    #             THEN DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)
+    #             ELSE 0 END), 0) as avg_delivery_days
+    #     FROM Suppliers s
+    #     JOIN Orders o USING(SupplierID)
+    #     JOIN Shipments sh USING(OrderID)
+    #     GROUP BY s.SupplierID, s.Name
+    # )
+    # SELECT * FROM SupplierStats
+    # WHERE avg_delivery_days < (SELECT AVG(avg_delivery_days) FROM SupplierStats)
+    # ORDER BY total_orders DESC;
+    # """
+    query="""
     WITH SupplierStats AS (
         SELECT 
-            s.SupplierID,
+            s.SupplierID as supplier_id,
             s.Name,
             COUNT(DISTINCT o.OrderID) AS total_orders,
             COALESCE(AVG(CASE WHEN sh.ShipmentDate IS NOT NULL 
@@ -55,7 +73,12 @@ async def get_supplier_performance():
         JOIN Shipments sh USING(OrderID)
         GROUP BY s.SupplierID, s.Name
     )
-    SELECT * FROM SupplierStats
+    SELECT 
+        supplier_id,
+        Name as name,
+        total_orders,
+        avg_delivery_days
+    FROM SupplierStats
     WHERE avg_delivery_days < (SELECT AVG(avg_delivery_days) FROM SupplierStats)
     ORDER BY total_orders DESC;
     """

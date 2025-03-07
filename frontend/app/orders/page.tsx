@@ -108,6 +108,10 @@ export default function OrdersPage() {
         return <Badge>{status}</Badge>
     }
   }
+  const uniqueOrders = filteredOrders.filter(
+    (value, index, self) =>
+      index === self.findIndex((t) => t.order_id === value.order_id)
+  );
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -255,7 +259,7 @@ export default function OrdersPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredOrders.map((order) => (
+                    uniqueOrders.map((order) => (
                       <TableRow key={order.order_id}>
                         <TableCell>#{order.order_id}</TableCell>
                         <TableCell>{new Date(order.order_date).toLocaleDateString()}</TableCell>

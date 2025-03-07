@@ -11,86 +11,61 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Plus, Trash } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/components/ui/use-toast"
-import { getOrder, getOrderDetails, updateOrder } from "@/lib/services/order-service"
-import { getCustomers } from "@/lib/services/customer-service"
-import { getSuppliers } from "@/lib/services/supplier-service"
+import { getShipment, updateShipment } from "@/lib/services/shipment-service"
 import { getProducts } from "@/lib/services/product-service"
-import type {
-  OrderUpdate,
-  OrderDetailBase,
-  OrderResponse,
-  OrderDetail,
-  CustomerResponse,
-  SupplierResponse,
-  ProductResponse,
-} from "@/lib/types"
+import type { ShipmentUpdate, ShipmentDetailBase, ShipmentResponse, ProductResponse } from "@/lib/types"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-export default function EditOrderPage() {
+export default function EditShipmentPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [order, setOrder] = useState<OrderResponse | null>(null)
-  const [orderDetails, setOrderDetails] = useState<OrderDetail[]>([])
-  const [customers, setCustomers] = useState<CustomerResponse[]>([])
-  const [suppliers, setSuppliers] = useState<SupplierResponse[]>([])
+  const [shipment, setShipment] = useState<ShipmentResponse | null>(null)
   const [products, setProducts] = useState<ProductResponse[]>([])
 
-  const [formData, setFormData] = useState<OrderUpdate>({
-    order_date: "",
-    supplier_id: 0,
+  const [formData, setFormData] = useState<ShipmentUpdate>({
+    shipment_date: "",
     details: [],
   })
 
   const [selectedProduct, setSelectedProduct] = useState<number>(0)
   const [selectedQuantity, setSelectedQuantity] = useState<number>(1)
 
-  const orderId = Number(params.id)
+  const shipmentId = Number(params.id)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
 
-        // Fetch order data
-        const orderData = await getOrder(orderId)
-        setOrder(orderData)
+        // Fetch shipment data
+        const shipmentData = await getShipment(shipmentId)
+        setShipment(shipmentData)
 
-        // Fetch order details
-        const detailsData = await getOrderDetails(orderId)
-        setOrderDetails(detailsData)
-
-        // Fetch customers, suppliers, and products
-        const [customersData, suppliersData, productsData] = await Promise.all([
-          getCustomers(),
-          getSuppliers(),
-          getProducts(),
-        ])
-
-        setCustomers(customersData)
-        setSuppliers(suppliersData)
+        // Fetch products
+        const productsData = await getProducts()
         setProducts(productsData)
 
         // Set initial form data
         setFormData({
-          order_date: orderData.order_date,
-          supplier_id: orderData.supplier_id,
-          details: detailsData.map((detail) => ({
-            product_id: detail.product_id,
-            quantity: detail.quantity,
-          })),
+          shipment_date: shipmentData.shipment_date,
+          details:
+            shipmentData.details?.map((detail) => ({
+              product_id: detail.product_id,
+              quantity: detail.quantity,
+            })) || [],
         })
       } catch (error) {
-        console.error("Failed to fetch order data:", error)
+        console.error("Failed to fetch shipment data:", error)
         toast({
           title: "Error",
-          description: "Failed to load order data. Please try again.",
+          description: "Failed to load shipment data. Please try again.",
           variant: "destructive",
         })
       } finally {
@@ -98,10 +73,10 @@ export default function EditOrderPage() {
       }
     }
 
-    if (orderId) {
+    if (shipmentId) {
       fetchData()
     }
-  }, [orderId, toast])
+  }, [shipmentId, toast])
 
   const handleChange = (name: string, value: any) => {
     setFormData((prev) => ({
@@ -110,15 +85,10 @@ export default function EditOrderPage() {
     }))
   }
 
-   // Helper function to format price safely
-   const formatPrice = (price: any): string => {
-    const numPrice = typeof price === "number" ? price : Number(price)
-    return isNaN(numPrice) ? "0.00" : numPrice.toFixed(2)
-  }
-  const addOrderDetail = () => {
+  const addShipmentDetail = () => {
     if (!selectedProduct || selectedQuantity <= 0) return
 
-    // Check if product already exists in the order
+    // Check if product already exists in the shipment
     const existingIndex = formData.details?.findIndex((detail) => detail.product_id === selectedProduct) ?? -1
 
     if (existingIndex >= 0 && formData.details) {
@@ -128,7 +98,7 @@ export default function EditOrderPage() {
       setFormData((prev) => ({ ...prev, details: updatedDetails }))
     } else {
       // Add new product
-      const newDetail: OrderDetailBase = {
+      const newDetail: ShipmentDetailBase = {
         product_id: selectedProduct,
         quantity: selectedQuantity,
       }
@@ -144,7 +114,7 @@ export default function EditOrderPage() {
     setSelectedQuantity(1)
   }
 
-  const removeOrderDetail = (index: number) => {
+  const removeShipmentDetail = (index: number) => {
     if (!formData.details) return
 
     const updatedDetails = [...formData.details]
@@ -157,27 +127,13 @@ export default function EditOrderPage() {
     return product ? product.name : "Unknown Product"
   }
 
-  const getProductPrice = (productId: number) => {
-    const product = products.find((p) => p.product_id === productId)
-    return product ? product.price : 0
-  }
-
-  const calculateTotal = () => {
-    if (!formData.details) return 0
-
-    return formData.details.reduce((total, detail) => {
-      const price = getProductPrice(detail.product_id)
-      return total + price * detail.quantity
-    }, 0)
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!formData.details || formData.details.length === 0) {
       toast({
         title: "Error",
-        description: "Please add at least one product to the order.",
+        description: "Please add at least one product to the shipment.",
         variant: "destructive",
       })
       return
@@ -186,17 +142,17 @@ export default function EditOrderPage() {
     setIsSubmitting(true)
 
     try {
-      await updateOrder(orderId, formData)
+      await updateShipment(shipmentId, formData)
       toast({
         title: "Success",
-        description: "Order has been updated successfully.",
+        description: "Shipment has been updated successfully.",
       })
-      router.push(`/orders/${orderId}`)
+      router.push(`/shipments/${shipmentId}`)
     } catch (error) {
-      console.error("Failed to update order:", error)
+      console.error("Failed to update shipment:", error)
       toast({
         title: "Error",
-        description: "Failed to update order. Please try again.",
+        description: "Failed to update shipment. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -212,7 +168,7 @@ export default function EditOrderPage() {
           <DashboardNav />
           <main className="flex w-full flex-col overflow-hidden">
             <div className="flex justify-center items-center h-64">
-              <p>Loading order data...</p>
+              <p>Loading shipment data...</p>
             </div>
           </main>
         </div>
@@ -220,7 +176,7 @@ export default function EditOrderPage() {
     )
   }
 
-  if (!order) {
+  if (!shipment) {
     return (
       <div className="flex min-h-screen flex-col">
         <DashboardHeader />
@@ -228,7 +184,7 @@ export default function EditOrderPage() {
           <DashboardNav />
           <main className="flex w-full flex-col overflow-hidden">
             <div className="flex justify-center items-center h-64">
-              <p>Order not found</p>
+              <p>Shipment not found</p>
             </div>
           </main>
         </div>
@@ -244,14 +200,14 @@ export default function EditOrderPage() {
         <main className="flex w-full flex-col overflow-hidden">
           <DashboardShell>
             <div className="flex items-center">
-              <Link href={`/orders/${orderId}`}>
+              <Link href={`/shipments/${shipmentId}`}>
                 <Button variant="ghost" size="icon" className="mr-2">
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Edit Order #{orderId}</h1>
-                <p className="text-muted-foreground">Update order information and items</p>
+                <h1 className="text-2xl font-bold tracking-tight">Edit Shipment #{shipmentId}</h1>
+                <p className="text-muted-foreground">Update shipment information and items</p>
               </div>
             </div>
           </DashboardShell>
@@ -259,42 +215,24 @@ export default function EditOrderPage() {
           <form onSubmit={handleSubmit}>
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Order Information</CardTitle>
-                <CardDescription>Edit the basic details of the order</CardDescription>
+                <CardTitle>Shipment Information</CardTitle>
+                <CardDescription>Edit the basic details of the shipment</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="order_date">Order Date</Label>
+                    <Label htmlFor="order_id">Order</Label>
+                    <Input id="order_id" value={`Order #${shipment.order_id}`} disabled />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="shipment_date">Shipment Date</Label>
                     <Input
-                      id="order_date"
+                      id="shipment_date"
                       type="date"
-                      value={formData.order_date}
-                      onChange={(e) => handleChange("order_date", e.target.value)}
+                      value={formData.shipment_date}
+                      onChange={(e) => handleChange("shipment_date", e.target.value)}
                       required
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="customer_id">Customer</Label>
-                    <Input id="customer_id" value={order.customer_name} disabled />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier_id">Supplier</Label>
-                    <Select
-                      value={formData.supplier_id?.toString()}
-                      onValueChange={(value) => handleChange("supplier_id", Number(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select supplier" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {suppliers.map((supplier) => (
-                          <SelectItem key={supplier.supplier_id} value={supplier.supplier_id.toString()}>
-                            {supplier.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
               </CardContent>
@@ -302,8 +240,8 @@ export default function EditOrderPage() {
 
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>Order Items</CardTitle>
-                <CardDescription>Edit products in this order</CardDescription>
+                <CardTitle>Shipment Items</CardTitle>
+                <CardDescription>Edit products in this shipment</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex flex-col md:flex-row gap-4 items-end">
@@ -319,7 +257,7 @@ export default function EditOrderPage() {
                       <SelectContent>
                         {products.map((product) => (
                           <SelectItem key={product.product_id} value={product.product_id.toString()}>
-                            {product.name} (${formatPrice(product.price.toFixed)})
+                            {product.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -335,7 +273,7 @@ export default function EditOrderPage() {
                       onChange={(e) => setSelectedQuantity(Number(e.target.value))}
                     />
                   </div>
-                  <Button type="button" onClick={addOrderDetail} className="mt-2 md:mt-0">
+                  <Button type="button" onClick={addShipmentDetail} className="mt-2 md:mt-0">
                     <Plus className="mr-2 h-4 w-4" />
                     Add Item
                   </Button>
@@ -346,47 +284,29 @@ export default function EditOrderPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Product</TableHead>
-                        <TableHead>Price</TableHead>
                         <TableHead>Quantity</TableHead>
-                        <TableHead>Total</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {!formData.details || formData.details.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-4">
-                            No items added to this order yet
+                          <TableCell colSpan={3} className="text-center py-4">
+                            No items added to this shipment yet
                           </TableCell>
                         </TableRow>
                       ) : (
-                        formData.details.map((detail, index) => {
-                          const productPrice = getProductPrice(detail.product_id)
-                          const itemTotal = productPrice * detail.quantity
-
-                          return (
-                            <TableRow key={index}>
-                              <TableCell>{getProductName(detail.product_id)}</TableCell>
-                              <TableCell>${formatPrice(productPrice)}</TableCell>
-                              <TableCell>{detail.quantity}</TableCell>
-                              <TableCell>${itemTotal.toFixed(2)}</TableCell>
-                              <TableCell>
-                                <Button variant="ghost" size="icon" onClick={() => removeOrderDetail(index)}>
-                                  <Trash className="h-4 w-4 text-red-500" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          )
-                        })
-                      )}
-                      {formData.details && formData.details.length > 0 && (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-right font-bold">
-                            Order Total:
-                          </TableCell>
-                          <TableCell className="font-bold">${calculateTotal().toFixed(2)}</TableCell>
-                          <TableCell></TableCell>
-                        </TableRow>
+                        formData.details.map((detail, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{getProductName(detail.product_id)}</TableCell>
+                            <TableCell>{detail.quantity}</TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="icon" onClick={() => removeShipmentDetail(index)}>
+                                <Trash className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
                       )}
                     </TableBody>
                   </Table>
@@ -394,10 +314,10 @@ export default function EditOrderPage() {
               </CardContent>
               <CardFooter className="flex justify-between">
                 <Button variant="outline" type="button" asChild>
-                  <Link href={`/orders/${orderId}`}>Cancel</Link>
+                  <Link href={`/shipments/${shipmentId}`}>Cancel</Link>
                 </Button>
                 <Button type="submit" disabled={isSubmitting || !formData.details || formData.details.length === 0}>
-                  {isSubmitting ? "Updating..." : "Update Order"}
+                  {isSubmitting ? "Updating..." : "Update Shipment"}
                 </Button>
               </CardFooter>
             </Card>

@@ -98,9 +98,12 @@ async def get_shipment_by_id(shipment_id: int):
         s.OrderID as order_id,
         s.ShipmentDate as shipment_date,
         o.OrderDate as order_date,
-        EXTRACT(CASE WHEN sh.ShipmentDate IS NOT NULL 
-                 THEN DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)
-                 ELSE 0 END) as delivery_days,
+        CASE 
+            WHEN s.ShipmentDate IS NOT NULL 
+            THEN DATE_PART('day', s.ShipmentDate::timestamp - o.OrderDate::timestamp)
+            ELSE 0
+        END AS delivery_days,
+
         json_agg(json_build_object(
             'product_id', p.ProductID,
             'product_name', p.Name,
