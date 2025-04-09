@@ -16,7 +16,7 @@ async def get_payments(start_date: Optional[date], end_date: Optional[date]):
     FROM PaymentDetails pd
     JOIN Orders o USING(OrderID)
     JOIN CustomerOrders co USING(OrderID)
-    JOIN Customers c USING(CustomerID)
+    JOIN Users c ON co.CustomerID = c.ID 
     WHERE 1=1
     """
     params = []
@@ -76,7 +76,7 @@ async def get_payment_by_id(payment_id: int):
     FROM PaymentDetails pd
     JOIN Orders o USING(OrderID)
     JOIN CustomerOrders co USING(OrderID)
-    JOIN Customers c USING(CustomerID)
+    JOIN Users c ON co.CustomerID = c.ID 
     WHERE pd.PaymentID = %s;
     """
     result = execute_query(query, (payment_id,))

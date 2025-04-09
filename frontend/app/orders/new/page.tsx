@@ -282,7 +282,7 @@ const formatPrice = (price: any): string => {
                         <SelectContent>
                           {products.map((product) => (
                             <SelectItem key={product.product_id} value={product.product_id.toString()}>
-                              {product.name} (${formatPrice(product.price)})
+                              {product.name} (৳{formatPrice(product.price)})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -330,9 +330,9 @@ const formatPrice = (price: any): string => {
                             return (
                               <TableRow key={index}>
                                 <TableCell>{getProductName(detail.product_id)}</TableCell>
-                                <TableCell>${formatPrice(productPrice)}</TableCell>
+                                <TableCell>৳{formatPrice(productPrice)}</TableCell>
                                 <TableCell>{detail.quantity}</TableCell>
-                                <TableCell>${itemTotal.toFixed(2)}</TableCell>
+                                <TableCell>৳{itemTotal.toFixed(2)}</TableCell>
                                 <TableCell>
                                   <Button variant="ghost" size="icon" onClick={() => removeOrderDetail(index)}>
                                     <Trash className="h-4 w-4 text-red-500" />
@@ -347,7 +347,7 @@ const formatPrice = (price: any): string => {
                             <TableCell colSpan={3} className="text-right font-bold">
                               Order Total:
                             </TableCell>
-                            <TableCell className="font-bold">${calculateTotal().toFixed(2)}</TableCell>
+                            <TableCell className="font-bold">৳{calculateTotal().toFixed(2)}</TableCell>
                             <TableCell></TableCell>
                           </TableRow>
                         )}

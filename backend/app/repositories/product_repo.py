@@ -4,6 +4,7 @@ from app.schemas.product import ProductCreate, ProductUpdate
 from typing import List, Optional
 from psycopg2.extras import RealDictCursor
 
+
 async def get_all_products():
     query = """
     SELECT 

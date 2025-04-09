@@ -92,6 +92,16 @@ export default function OrdersPage() {
     return order.status.toLowerCase() === statusFilter.toLowerCase();
   });
 
+  const totalAmount = orders.reduce((sum, order) => {
+    // Ensure proper conversion of total_amount
+    const amount = order.total_amount != null ? parseFloat(order.total_amount.toString()) : 0;
+    if (isNaN(amount)) {
+      console.warn("Invalid total_amount:", order.total_amount);  // Log if invalid
+    }
+    return sum + amount;
+  }, 0);
+  
+
   // Helper function to safely format currency values
   const formatCurrency = (amount: any): string => {
     const numAmount = typeof amount === "number" ? amount : Number(amount);
@@ -209,7 +219,7 @@ export default function OrdersPage() {
                 <div className="text-2xl font-bold">
                   ৳
                   {formatCurrency(
-                    orders.reduce((sum, order) => sum + order.total_amount, 0)
+                    totalAmount
                   )}
                 </div>
               </CardContent>

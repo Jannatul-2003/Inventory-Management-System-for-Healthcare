@@ -70,18 +70,18 @@ async def get_customer_analytics():
     query = """
     WITH CustomerStats AS (
         SELECT 
-            c.CustomerID as customer_id,
+            c.id as customer_id,
             c.Name,
             COUNT(DISTINCT o.OrderID) as total_orders,
             SUM(od.Quantity * p.Price) as total_spent,
             MIN(o.OrderDate) as first_order,
             MAX(o.OrderDate) as last_order
-        FROM Customers c
-        JOIN CustomerOrders co USING(CustomerID)
+        FROM Users c
+        JOIN CustomerOrders co on c.ID = co.CustomerID
         JOIN Orders o USING(OrderID)
         JOIN OrderDetails od USING(OrderID)
         JOIN Products p USING(ProductID)
-        GROUP BY c.CustomerID, c.Name
+        GROUP BY c.id, c.Name
     )
     SELECT 
         customer_id,
@@ -98,64 +98,36 @@ async def get_customer_analytics():
     return execute_query(query)
 
 async def get_supplier_analytics():
-    query="""
+    query = """
     WITH SupplierStats AS (
     SELECT 
-        s.SupplierID AS supplier_id,
+        s.id AS supplier_id,
         s.Name AS name,
         COUNT(DISTINCT o.OrderID) AS total_orders,
         SUM(od.Quantity) AS total_units,
         SUM(od.Quantity * p.Price) AS total_value,
-        AVG(DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)) AS avg_delivery_days
-    FROM Suppliers s
-    JOIN Orders o USING(SupplierID)
+        COALESCE(AVG(DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)), 0) AS avg_delivery_days
+    FROM Users s
+    JOIN Orders o on s.ID = o.SupplierID
     JOIN OrderDetails od USING(OrderID)
     JOIN Products p USING(ProductID)
     LEFT JOIN Shipments sh USING(OrderID)
-    GROUP BY s.SupplierID, s.Name
-)
-SELECT 
-    *,
-    total_value / NULLIF(total_orders, 0) AS avg_order_value,
-    CASE 
-        WHEN avg_delivery_days <= 3 THEN 'Excellent'
-        WHEN avg_delivery_days <= 5 THEN 'Good'
-        WHEN avg_delivery_days <= 7 THEN 'Fair'
-        ELSE 'Poor'
-    END AS performance_rating
-FROM SupplierStats
-ORDER BY total_value DESC;
-
+    GROUP BY s.id, s.Name
+    )
+    SELECT 
+        *,
+        total_value / NULLIF(total_orders, 0) AS avg_order_value,
+        CASE 
+            WHEN avg_delivery_days <= 3 THEN 'Excellent'
+            WHEN avg_delivery_days <= 5 THEN 'Good'
+            WHEN avg_delivery_days <= 7 THEN 'Fair'
+            ELSE 'Poor'
+        END AS performance_rating
+    FROM SupplierStats
+    ORDER BY total_value DESC;
     """
-    # query = """
-    # WITH SupplierStats AS (
-    #     SELECT 
-    #         s.SupplierID as supplier_id,
-    #         s.Name as name,
-    #         COUNT(DISTINCT o.OrderID) as total_orders,
-    #         SUM(od.Quantity) as total_units,
-    #         SUM(od.Quantity * p.Price) as total_value,
-    #         AVG(DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)) as avg_delivery_days
-    #     FROM Suppliers s
-    #     JOIN Orders o USING(SupplierID)
-    #     JOIN OrderDetails od USING(OrderID)
-    #     JOIN Products p USING(ProductID)
-    #     LEFT JOIN Shipments sh USING(OrderID)
-    #     GROUP BY s.SupplierID, s.Name
-    # )
-    # SELECT 
-    #     *,
-    #     total_value / NULLIF(total_orders, 0) as avg_order_value,
-    #     CASE 
-    #         WHEN avg_delivery_days <= 3 THEN 'Excellent'
-    #         WHEN avg_delivery_days <= 5 THEN 'Good'
-    #         WHEN avg_delivery_days <= 7 THEN 'Fair'
-    #         ELSE 'Poor'
-    #     END as performance_rating
-    # FROM SupplierStats
-    # ORDER BY total_value DESC;
-    # """
     return execute_query(query)
+
 
 async def get_trend_analytics():
     query = """

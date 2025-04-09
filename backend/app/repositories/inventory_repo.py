@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from app.config.database import execute_query
 from typing import List, Optional
 
+
 async def get_all_inventory():
     query = """
     SELECT 

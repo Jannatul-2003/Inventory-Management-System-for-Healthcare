@@ -5,27 +5,6 @@ from typing import List, Optional
 from datetime import date
 
 async def get_all_shipments():
-    # query = """
-    # SELECT 
-    #     s.ShipmentID as shipment_id,
-    #     s.OrderID as order_id,
-    #     s.ShipmentDate as shipment_date,
-    #     o.OrderDate as order_date,
-    #     EXTRACT(CASE WHEN sh.ShipmentDate IS NOT NULL 
-    #              THEN DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)
-    #              ELSE 0 END) as delivery_days,
-    #     json_agg(json_build_object(
-    #         'product_id', p.ProductID,
-    #         'product_name', p.Name,
-    #         'quantity', sd.Quantity
-    #     )) as details
-    # FROM Shipments s
-    # JOIN Orders o ON s.OrderID = o.OrderID
-    # LEFT JOIN ShipmentDetails sd ON s.ShipmentID = sd.ShipmentID
-    # LEFT JOIN Products p ON sd.ProductID = p.ProductID
-    # GROUP BY s.ShipmentID, s.OrderID, s.ShipmentDate, o.OrderDate
-    # ORDER BY s.ShipmentDate DESC;
-    # """
     query="""
     SELECT
         s.ShipmentID AS shipment_id,
@@ -70,25 +49,7 @@ LEFT OUTER JOIN Shipments s USING(OrderID)
 WHERE s.ShipmentDate IS NULL
    OR (EXTRACT(EPOCH FROM (s.ShipmentDate::timestamp - o.OrderDate::timestamp)) / 86400) > 7
 ORDER BY o.OrderDate;
-
     """
-    # query = """
-    # SELECT 
-    #     o.OrderID as order_id,
-    #     o.OrderDate as order_date,
-    #     s.ShipmentID as shipment_id,
-    #     s.ShipmentDate as shipment_date,
-    #     CASE 
-    #         WHEN s.ShipmentDate IS NOT NULL 
-    #         THEN EXTRACT(DAY FROM (s.ShipmentDate::timestamp - o.OrderDate::timestamp))
-    #         ELSE 0 
-    #     END AS delivery_days
-    # FROM Orders o
-    # LEFT OUTER JOIN Shipments s USING(OrderID)
-    # WHERE s.ShipmentDate IS NULL 
-    #    OR EXTRACT(EPOCH FROM (s.ShipmentDate - o.OrderDate))/86400 > 7
-    # ORDER BY o.OrderDate;
-    # """
     return execute_query(query)
 
 async def get_shipment_by_id(shipment_id: int):

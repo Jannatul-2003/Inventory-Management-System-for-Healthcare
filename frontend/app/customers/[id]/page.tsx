@@ -216,12 +216,12 @@ export default function CustomerDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Spent:</span>
-                    <span className="font-medium">${formatCurrency(customer.total_spent)}</span>
+                    <span className="font-medium">৳{formatCurrency(customer.total_spent)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Average Order Value:</span>
                     <span className="font-medium">
-                      ${formatCurrency(customer.total_orders ? customer.total_spent / customer.total_orders : 0)}
+                    ৳{formatCurrency(customer.total_orders ? customer.total_spent / customer.total_orders : 0)}
                     </span>
                   </div>
                 </div>
@@ -264,8 +264,8 @@ export default function CustomerDetailPage() {
                         <TableCell>{new Date(order.order_date).toLocaleDateString()}</TableCell>
                         <TableCell>{order.product_name}</TableCell>
                         <TableCell>{order.quantity}</TableCell>
-                        <TableCell>${formatCurrency(order.unit_price)}</TableCell>
-                        <TableCell>${formatCurrency(order.total_price)}</TableCell>
+                        <TableCell>৳{formatCurrency(order.unit_price)}</TableCell>
+                        <TableCell>৳{formatCurrency(order.total_price)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

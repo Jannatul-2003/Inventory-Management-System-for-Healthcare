@@ -251,11 +251,11 @@ export default function OrderDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Amount:</span>
-                    <span className="font-medium">${formatCurrency(order.total_amount)}</span>
+                    <span className="font-medium">৳{formatCurrency(order.total_amount)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Amount Paid:</span>
-                    <span className="font-medium">${formatCurrency(order.amount_paid)}</span>
+                    <span className="font-medium">৳{formatCurrency(order.amount_paid)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -294,9 +294,9 @@ export default function OrderDetailPage() {
                     orderDetails.map((detail) => (
                       <TableRow key={detail.order_detail_id}>
                         <TableCell>{detail.product_name}</TableCell>
-                        <TableCell>${formatCurrency(detail.unit_price)}</TableCell>
+                        <TableCell>৳{formatCurrency(detail.unit_price)}</TableCell>
                         <TableCell>{detail.quantity}</TableCell>
-                        <TableCell>${formatCurrency(detail.total_price)}</TableCell>
+                        <TableCell>৳{formatCurrency(detail.total_price)}</TableCell>
                       </TableRow>
                     ))
                   )}
@@ -305,7 +305,7 @@ export default function OrderDetailPage() {
                       <TableCell colSpan={3} className="text-right font-bold">
                         Order Total:
                       </TableCell>
-                      <TableCell className="font-bold">${formatCurrency(order.total_amount)}</TableCell>
+                      <TableCell className="font-bold">৳{formatCurrency(order.total_amount)}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>

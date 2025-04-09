@@ -69,9 +69,9 @@ class UserRepository:
                     print(f"Searching for user: {username}, {contact_info}")  # Debugging
                     cursor.execute(
                         """
-                        SELECT id, name, contact_info, role
+                        SELECT id, name, contactinfo, role
                         FROM users
-                        WHERE name = %s AND contact_info = %s
+                        WHERE name = %s AND contactinfo = %s
                         """,
                         (username, contact_info)
                     )
@@ -82,7 +82,7 @@ class UserRepository:
                         return {
                             "id": user["id"],
                             "name": user["name"],
-                            "contact_info": user["contact_info"],
+                            "contact_info": user["contactinfo"],
                             "role": user["role"]
                         }
                     return None

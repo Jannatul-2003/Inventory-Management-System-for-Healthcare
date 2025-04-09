@@ -1,5 +1,3 @@
-
-# File: app/repositories/order_repo.py
 from fastapi import HTTPException
 from app.config.database import execute_query
 from app.schemas.order import OrderCreate, OrderUpdate
@@ -16,9 +14,9 @@ async def get_orders(
     SELECT 
         o.OrderID as order_id,
         o.OrderDate as order_date,
-        s.SupplierID as supplier_id,
+        s.ID as supplier_id,
         s.Name as supplier_name,
-        c.CustomerID as customer_id,
+        c.ID as customer_id,
         c.Name as customer_name,
         COUNT(od.ProductID) as total_items,
         SUM(od.Quantity) as total_quantity,
@@ -30,9 +28,9 @@ async def get_orders(
             ELSE 'Pending'
         END as status
     FROM Orders o
-    JOIN Suppliers s ON o.SupplierID = s.SupplierID
+    JOIN Users s ON o.SupplierID = s.ID 
     JOIN CustomerOrders co ON o.OrderID = co.OrderID
-    JOIN Customers c ON co.CustomerID = c.CustomerID
+    JOIN Users c ON co.CustomerID = c.ID 
     JOIN OrderDetails od ON o.OrderID = od.OrderID
     JOIN Products p ON od.ProductID = p.ProductID
     LEFT JOIN PaymentDetails pd ON o.OrderID = pd.OrderID
@@ -48,15 +46,15 @@ async def get_orders(
         query += " AND o.OrderDate <= %s"
         params.append(end_date)
     if customer_id:
-        query += " AND c.CustomerID = %s"
+        query += " AND c.ID = %s"
         params.append(customer_id)
     if supplier_id:
-        query += " AND s.SupplierID = %s"
+        query += " AND s.ID = %s"
         params.append(supplier_id)
     
     query += """
-    GROUP BY o.OrderID, o.OrderDate, s.SupplierID, s.Name, 
-             c.CustomerID, c.Name, pd.Amount, sh.ShipmentDate
+    GROUP BY o.OrderID, o.OrderDate, s.ID, s.Name, 
+             c.ID, c.Name, pd.Amount, sh.ShipmentDate
     ORDER BY o.OrderDate DESC;
     """
     
@@ -71,11 +69,11 @@ async def get_order_summary():
         c.Name as customer_name,
         SUM(od.Quantity * p.Price) as total_amount
     FROM Orders o
-    JOIN Suppliers s USING(SupplierID)
-    JOIN CustomerOrders co USING(OrderID)
-    JOIN Customers c USING(CustomerID)
-    JOIN OrderDetails od USING(OrderID)
-    JOIN Products p USING(ProductID)
+    JOIN Users s ON o.SupplierID = s.ID 
+    JOIN CustomerOrders co ON o.OrderID = co.OrderID
+    JOIN Users c ON co.CustomerID = c.ID 
+    JOIN OrderDetails od ON o.OrderID = od.OrderID
+    JOIN Products p ON od.ProductID = p.ProductID
     GROUP BY o.OrderID, o.OrderDate, s.Name, c.Name
     ORDER BY o.OrderDate DESC;
     """
@@ -109,9 +107,9 @@ async def get_order_by_id(order_id: int):
     SELECT 
         o.OrderID as order_id,
         o.OrderDate as order_date,
-        s.SupplierID as supplier_id,
+        s.ID as supplier_id,
         s.Name as supplier_name,
-        c.CustomerID as customer_id,
+        c.ID as customer_id,
         c.Name as customer_name,
         COUNT(od.ProductID) as total_items,
         SUM(od.Quantity) as total_quantity,
@@ -123,16 +121,16 @@ async def get_order_by_id(order_id: int):
             ELSE 'Pending'
         END as status
     FROM Orders o
-    JOIN Suppliers s ON o.SupplierID = s.SupplierID
+    JOIN Users s ON o.SupplierID = s.ID 
     JOIN CustomerOrders co ON o.OrderID = co.OrderID
-    JOIN Customers c ON co.CustomerID = c.CustomerID
+    JOIN Users c ON co.CustomerID = c.ID 
     JOIN OrderDetails od ON o.OrderID = od.OrderID
     JOIN Products p ON od.ProductID = p.ProductID
     LEFT JOIN PaymentDetails pd ON o.OrderID = pd.OrderID
     LEFT JOIN Shipments sh ON o.OrderID = sh.OrderID
     WHERE o.OrderID = %s
-    GROUP BY o.OrderID, o.OrderDate, s.SupplierID, s.Name, 
-             c.CustomerID, c.Name, pd.Amount, sh.ShipmentDate;
+    GROUP BY o.OrderID, o.OrderDate, s.ID, s.Name, 
+             c.ID, c.Name, pd.Amount, sh.ShipmentDate;
     """
     result = execute_query(query, (order_id,))
     return result[0] if result else None
@@ -153,7 +151,6 @@ async def get_order_details(order_id: int):
     return execute_query(query, (order_id,))
 
 async def create_order(order: OrderCreate):
-    # Start transaction
     order_query = """
     INSERT INTO Orders (OrderDate, SupplierID)
     VALUES (%s, %s)
@@ -167,14 +164,12 @@ async def create_order(order: OrderCreate):
     if order_result:
         order_id = order_result[0]['orderid']
         
-        # Link customer to order
         customer_order_query = """
         INSERT INTO CustomerOrders (CustomerID, OrderID)
         VALUES (%s, %s);
         """
         execute_query(customer_order_query, (order.customer_id, order_id))
         
-        # Insert order details
         details_query = """
         INSERT INTO OrderDetails (OrderID, ProductID, Quantity)
         VALUES (%s, %s, %s);
@@ -211,37 +206,7 @@ async def update_order(order_id: int, order: OrderUpdate):
     params.append(order_id)
     
     result = execute_query(query, tuple(params))
-    
-    if result and order.details:
-        # Update order details
-        # First delete existing details
-        execute_query(
-            "DELETE FROM OrderDetails WHERE OrderID = %s",
-            (order_id,)
-        )
-        # Then insert new details
-        details_query = """
-        INSERT INTO OrderDetails (OrderID, ProductID, Quantity)
-        VALUES (%s, %s, %s);
-        """
-        for detail in order.details:
-            execute_query(
-                details_query,
-                (order_id, detail.product_id, detail.quantity)
-            )
-    
-    if result:
-        return await get_order_by_id(order_id)
-    return None
-
-async def check_order_shipped(order_id: int):
-    query = """
-    SELECT 1 
-    FROM Shipments 
-    WHERE OrderID = %s;
-    """
-    result = execute_query(query, (order_id,))
-    return bool(result)
+    return get_order_by_id(order_id) if result else None
 
 async def delete_order(order_id: int):
     query = """

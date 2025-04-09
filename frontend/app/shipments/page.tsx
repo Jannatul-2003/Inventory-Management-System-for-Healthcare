@@ -288,7 +288,7 @@ export default function ShipmentsPage() {
                                 <TableCell>{formatDate(shipment.order_date)}</TableCell>
                                 <TableCell>{formatDate(shipment.shipment_date)}</TableCell>
                                 <TableCell>
-                                  {shipment.delivery_days ? `${shipment.delivery_days} days` : "N/A"}
+                                  {shipment.delivery_days ? `${shipment.delivery_days} days` : `${shipment.delivery_days} day`}
                                 </TableCell>
                                 <TableCell>{getStatusBadge(shipment.delivery_days)}</TableCell>
                                 <TableCell className="text-right">

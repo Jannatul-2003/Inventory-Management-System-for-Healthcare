@@ -6,20 +6,21 @@ async def get_overview():
     SELECT 
         (SELECT COUNT(DISTINCT o.OrderID) 
          FROM Orders o 
-         WHERE o.OrderDate >= CURRENT_DATE - INTERVAL '30 days') as monthly_orders,
+         WHERE o.OrderDate >= CURRENT_DATE - INTERVAL '30 days') AS monthly_orders,
         (SELECT SUM(p.Price * od.Quantity)
          FROM Orders o 
          JOIN OrderDetails od USING(OrderID)
          JOIN Products p USING(ProductID)
-         WHERE o.OrderDate >= CURRENT_DATE - INTERVAL '30 days') as monthly_revenue,
-        (SELECT COUNT(DISTINCT CustomerID)
+         WHERE o.OrderDate >= CURRENT_DATE - INTERVAL '30 days') AS monthly_revenue,
+        (SELECT COUNT(DISTINCT u.id)
          FROM CustomerOrders co
          JOIN Orders o USING(OrderID)
-         WHERE o.OrderDate >= CURRENT_DATE - INTERVAL '30 days') as active_customers,
+         JOIN Users u ON co.CustomerID = u.id 
+         WHERE o.OrderDate >= CURRENT_DATE - INTERVAL '30 days') AS active_customers,
         (SELECT COUNT(*)
          FROM Products p
          JOIN Inventory i USING(ProductID)
-         WHERE i.Quantity < 10) as low_stock_items;
+         WHERE i.Quantity < 10) AS low_stock_items;
     """
     result = execute_query(query)
     return result[0] if result else None
@@ -30,11 +31,12 @@ async def get_monthly_metrics():
         DATE_TRUNC('month', OrderDate) AS month,
         COUNT(DISTINCT o.OrderID) AS total_orders,
         SUM(p.Price * od.Quantity) AS total_revenue,
-        COUNT(DISTINCT CustomerID) AS unique_customers
+        COUNT(DISTINCT u.id) AS unique_customers
     FROM Orders o
     JOIN OrderDetails od USING(OrderID)
     JOIN Products p USING(ProductID)
     JOIN CustomerOrders co USING(OrderID)
+    JOIN Users u ON co.CustomerID = u.id 
     GROUP BY DATE_TRUNC('month', OrderDate)
     ORDER BY month DESC
     LIMIT 12;
@@ -44,10 +46,10 @@ async def get_monthly_metrics():
 async def get_top_products():
     query = """
     SELECT 
-        p.ProductID as product_id,
+        p.ProductID AS product_id,
         p.Name,
-        SUM(od.Quantity) as total_sold,
-        SUM(od.Quantity * p.Price) as total_revenue
+        SUM(od.Quantity) AS total_sold,
+        SUM(od.Quantity * p.Price) AS total_revenue
     FROM Products p
     JOIN OrderDetails od USING(ProductID)
     JOIN Orders o USING(OrderID)
@@ -61,17 +63,17 @@ async def get_top_products():
 async def get_top_customers():
     query = """
     SELECT 
-        c.CustomerID as customer_id,
-        c.Name,
-        COUNT(DISTINCT co.OrderID) as total_orders,
-        SUM(od.Quantity * p.Price) as total_spent
-    FROM Customers c
-    JOIN CustomerOrders co USING(CustomerID)
+        u.id AS customer_id,
+        u.Name,
+        COUNT(DISTINCT co.OrderID) AS total_orders,
+        SUM(od.Quantity * p.Price) AS total_spent
+    FROM Users u
+    JOIN CustomerOrders co ON co.CustomerID = u.id
     JOIN Orders o USING(OrderID)
     JOIN OrderDetails od USING(OrderID)
     JOIN Products p USING(ProductID)
     WHERE o.OrderDate >= CURRENT_DATE - INTERVAL '30 days'
-    GROUP BY c.CustomerID, c.Name
+    GROUP BY u.id, u.Name
     ORDER BY total_spent DESC
     LIMIT 5;
     """

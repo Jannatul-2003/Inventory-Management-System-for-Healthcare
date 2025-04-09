@@ -6,72 +6,55 @@ from typing import List, Optional
 async def get_all_suppliers():
     query = """
     SELECT 
-        s.SupplierID as supplier_id,
+        s.id as supplier_id,
         s.Name as name,
         s.ContactInfo as contact_info,
         COUNT(DISTINCT o.OrderID) as total_orders,
         COALESCE(AVG(CASE WHEN sh.ShipmentDate IS NOT NULL 
                  THEN DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)
                  ELSE 0 END), 0) as avg_delivery_days
-    FROM Suppliers s
-    LEFT JOIN Orders o ON s.SupplierID = o.SupplierID
+    FROM Users s
+    LEFT JOIN Orders o ON s.id = o.SupplierID
     LEFT JOIN Shipments sh ON o.OrderID = sh.OrderID
-    GROUP BY s.SupplierID, s.Name, s.ContactInfo
-    ORDER BY s.SupplierID;
+    WHERE s.Role = 'supplier'
+    GROUP BY s.id, s.Name, s.ContactInfo
+    ORDER BY s.id;
     """
     return execute_query(query)
 
 async def get_supplier_by_id(supplier_id: int):
     query = """
     SELECT 
-        s.SupplierID as supplier_id,
+        s.id as supplier_id,
         s.Name as name,
         s.ContactInfo as contact_info,
         COUNT(DISTINCT o.OrderID) as total_orders,
         COALESCE(AVG(CASE WHEN sh.ShipmentDate IS NOT NULL 
                  THEN DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)
                  ELSE 0 END), 0) as avg_delivery_days    
-    FROM Suppliers s
-    LEFT JOIN Orders o ON s.SupplierID = o.SupplierID
+    FROM Users s
+    LEFT JOIN Orders o ON s.id = o.SupplierID
     LEFT JOIN Shipments sh ON o.OrderID = sh.OrderID
-    WHERE s.SupplierID = %s
-    GROUP BY s.SupplierID, s.Name, s.ContactInfo;
+    WHERE s.id = %s AND s.Role = 'supplier'
+    GROUP BY s.id, s.Name, s.ContactInfo;
     """
     result = execute_query(query, (supplier_id,))
     return result[0] if result else None
 
 async def get_supplier_performance():
-    # query = """
-    # WITH SupplierStats AS (
-    #     SELECT 
-    #         s.SupplierID as supplier_id,
-    #         s.Name,
-    #         COUNT(DISTINCT o.OrderID) AS total_orders,
-    #         COALESCE(AVG(CASE WHEN sh.ShipmentDate IS NOT NULL 
-    #             THEN DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)
-    #             ELSE 0 END), 0) as avg_delivery_days
-    #     FROM Suppliers s
-    #     JOIN Orders o USING(SupplierID)
-    #     JOIN Shipments sh USING(OrderID)
-    #     GROUP BY s.SupplierID, s.Name
-    # )
-    # SELECT * FROM SupplierStats
-    # WHERE avg_delivery_days < (SELECT AVG(avg_delivery_days) FROM SupplierStats)
-    # ORDER BY total_orders DESC;
-    # """
     query="""
     WITH SupplierStats AS (
         SELECT 
-            s.SupplierID as supplier_id,
+            s.id as supplier_id,
             s.Name,
             COUNT(DISTINCT o.OrderID) AS total_orders,
             COALESCE(AVG(CASE WHEN sh.ShipmentDate IS NOT NULL 
                 THEN DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)
                 ELSE 0 END), 0) as avg_delivery_days
-        FROM Suppliers s
-        JOIN Orders o USING(SupplierID)
+        FROM Users s
+        JOIN Orders o ON s.id = o.SupplierID
         JOIN Shipments sh USING(OrderID)
-        GROUP BY s.SupplierID, s.Name
+        GROUP BY s.id, s.Name
     )
     SELECT 
         supplier_id,
@@ -86,13 +69,13 @@ async def get_supplier_performance():
 
 async def create_supplier(supplier: SupplierCreate):
     query = """
-    INSERT INTO Suppliers (Name, ContactInfo)
-    VALUES (%s, %s)
-    RETURNING SupplierID;
+    INSERT INTO Users (Name, ContactInfo, Role)
+    VALUES (%s, %s, 'supplier')
+    RETURNING id;
     """
     result = execute_query(query, (supplier.name, supplier.contact_info))
     if result:
-        return await get_supplier_by_id(result[0]['supplierid'])
+        return await get_supplier_by_id(result[0]['id'])
     return None
 
 async def update_supplier(supplier_id: int, supplier: SupplierUpdate):
@@ -109,10 +92,10 @@ async def update_supplier(supplier_id: int, supplier: SupplierUpdate):
         return await get_supplier_by_id(supplier_id)
     
     query = f"""
-    UPDATE Suppliers 
+    UPDATE Users 
     SET {", ".join(update_fields)}
-    WHERE SupplierID = %s
-    RETURNING SupplierID;
+    WHERE id = %s AND Role = 'supplier'
+    RETURNING id;
     """
     params.append(supplier_id)
     
@@ -123,9 +106,9 @@ async def update_supplier(supplier_id: int, supplier: SupplierUpdate):
 
 async def delete_supplier(supplier_id: int):
     query = """
-    DELETE FROM Suppliers 
-    WHERE SupplierID = %s
-    RETURNING SupplierID;
+    DELETE FROM users 
+    WHERE id = %s AND Role = 'supplier'
+    RETURNING id;
     """
     result = execute_query(query, (supplier_id,))
     return bool(result)
@@ -133,18 +116,18 @@ async def delete_supplier(supplier_id: int):
 async def search_suppliers(search_term: str):
     query = """
     SELECT 
-        s.SupplierID as supplier_id,
+        s.id as supplier_id,
         s.Name as name,
         s.ContactInfo as contact_info,
         COUNT(DISTINCT o.OrderID) as total_orders,
         COALESCE(AVG(CASE WHEN sh.ShipmentDate IS NOT NULL 
                 THEN DATE_PART('day', sh.ShipmentDate::timestamp - o.OrderDate::timestamp)
                 ELSE 0 END), 0) as avg_delivery_days
-    FROM Suppliers s
-    LEFT JOIN Orders o ON s.SupplierID = o.SupplierID
+    FROM Users s
+    LEFT JOIN Orders o ON s.id = o.SupplierID
     LEFT JOIN Shipments sh ON o.OrderID = sh.OrderID
-    WHERE LOWER(s.Name) LIKE LOWER(%s)
-    GROUP BY s.SupplierID, s.Name, s.ContactInfo;
+    WHERE LOWER(s.Name) LIKE LOWER(%s) AND s.Role = 'supplier'
+    GROUP BY s.id, s.Name, s.ContactInfo;
     """
     search_pattern = f"%{search_term}%"
     return execute_query(query, (search_pattern,))
